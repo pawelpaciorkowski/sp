@@ -1,0 +1,1323 @@
+openapi: 3.0.3
+info:
+  title: ALAB flow
+  description: ALAB flow backend
+  termsOfService: https://www.alablaboratoria.pl
+  contact:
+    name: Alab Laboratoria
+    url: https://alablaboratoria.pl
+    email: mariusz.rysz@alab.com.pl
+  version: '2023.10.26'
+servers:
+  - url: http://127.0.0.1/api
+tags:
+  - name: Authorisation
+  - name: Technical
+  - name: Dictionary
+  - name: Flow
+  - name: User
+paths:
+  /login:
+    post:
+      tags:
+        - Authorisation
+      description: Login and get token
+      security: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/login'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/token'
+  /health:
+    get:
+      tags:
+        - Technical
+      description: Check API health
+      security: [ ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/health'
+        '503':
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/health'
+  /applications:
+    get:
+      tags:
+        - Flow
+      description: Get list of applications
+      parameters:
+        - name: page
+          description: page number
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: is-final
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/applications'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /cities:
+    get:
+      tags:
+        - Dictionary
+      description: List of cities
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/city'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+  /city/{uuid}:
+    get:
+      tags:
+        - Dictionary
+      description: Find city by UUID
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/city'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /collection-points:
+    get:
+      tags:
+        - Dictionary
+      deprecated: true
+      summary: Use post method instead
+      description: List of collection points
+      parameters:
+        - name: with-laboratories
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/collectionPoint'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+    post:
+      tags:
+        - Dictionary
+      summary: search for collection points, optional by laboratory IDs defined in request body
+      parameters:
+        - name: with-laboratories
+          in: query
+          required: false
+          schema:
+            type: boolean
+      requestBody:
+        description: Ids to filter data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/collectionPointAndLaboratoryFilter'
+        required: false
+      description: List of collection points
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/collectionPoint'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+  /collection-point/{uuid}:
+    get:
+      tags:
+        - Dictionary
+      description: Find collection point by UUID
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: with-laboratories
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/collectionPoint'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /flow/{id}:
+    get:
+      tags:
+        - Dictionary
+      description: Find flow by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/flowType'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /flow/{flowName}:
+    post:
+      tags:
+        - Flow
+      description: Create new flow of flow name
+      parameters:
+        - name: flowName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/flow'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /flow/{flowName}/{id}:
+    get:
+      tags:
+        - Flow
+      description: Get selected flow
+      parameters:
+        - name: flowName
+          description: flow name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          description: id of form of flow with flowId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/flow'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+    put:
+      tags:
+        - Flow
+      description: Put selected flow
+      parameters:
+        - name: flowName
+          description: flow name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          description: id of form of flow with flowId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/flow'
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/error'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /flow/{flowName}/{id}/{stage}:
+    patch:
+      tags:
+        - Flow
+      description: Patch current flow
+      parameters:
+        - name: flowName
+          description: flow name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          description: id of form of flow with flowId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: stage
+          description: name of stage
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/stage'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/flow'
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/error'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /flow-statuses:
+    get:
+      tags:
+        - Dictionary
+      description: List of flow statuses
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/flowStatus'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+  /flow-status/{id}:
+    get:
+      tags:
+        - Dictionary
+      description: Find flow status by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/flowStatus'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /gus/nip/{nip}:
+    get:
+      tags:
+        - Dictionary
+      description: Search GUS database by NIP
+      parameters:
+        - name: nip
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/gus'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /gus/regon/{regon}:
+    get:
+      tags:
+        - Dictionary
+      description: Search GUS database by REGON
+      parameters:
+        - name: regon
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/gus'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /healing-subject/nip/{nip}:
+    get:
+      tags:
+        - Dictionary
+      description: Find healing subject by NIP
+      parameters:
+        - name: nip
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/healingSubject'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /healing-subject/registration-book-number/{registrationBookNumber}:
+    get:
+      tags:
+        - Dictionary
+      description: Find healing subject by registrationBookNumber
+      parameters:
+        - name: registrationBookNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/healingSubject'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /laboratories:
+    get:
+      deprecated: true
+      summary: Use post method instead
+      tags:
+        - Dictionary
+      parameters:
+        - name: with-collection-points
+          in: query
+          required: false
+          schema:
+            type: boolean
+      description: List of laboratories
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/laboratory'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+    post:
+      tags:
+        - Dictionary
+      summary: search for laboratories, optional by IDs defined in request body
+      parameters:
+        - name: with-collection-points
+          in: query
+          required: false
+          schema:
+            type: boolean
+      requestBody:
+        description: Ids to filter data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/collectionPointAndLaboratoryFilter'
+        required: false
+      description: List of laboratories
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/laboratory'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+  /laboratory/{uuid}:
+    get:
+      tags:
+        - Dictionary
+      description: Find laboratory by UUID
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: with-collection-points
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/laboratory'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /street-types:
+    get:
+      tags:
+        - Dictionary
+      description: List of street types
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/streetType'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+  /street-type/{uuid}:
+    get:
+      tags:
+        - Dictionary
+      description: Find street type by UUID
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/streetType'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /teams:
+    get:
+      tags:
+        - Dictionary
+      description: List of teams
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/team'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+  /team/{id}:
+    get:
+      tags:
+        - Dictionary
+      description: Find team by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/team'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+  /users:
+    get:
+      tags:
+        - User
+      description: List of users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+  /user/reset:
+    post:
+      tags:
+        - User
+      description: Send mail with link to password reset
+      security: [ ]
+      requestBody:
+        description: Users email address
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postUserResetRequest'
+        required: true
+      responses:
+        '202':
+          description: OK
+  /user/me:
+    get:
+      tags:
+        - User
+      description: Get information about logged user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+  /user/reset/{ticket}:
+    get:
+      tags:
+        - User
+      description: Check ticket
+      security: [ ]
+      parameters:
+        - name: ticket
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: OK
+        '404':
+          description: Resource not found
+    post:
+      tags:
+        - User
+      description: Set new password
+      security: [ ]
+      parameters:
+        - name: ticket
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: New users password
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postUserReset'
+        required: true
+      responses:
+        '204':
+          description: OK
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
+  /user/{id}:
+    get:
+      tags:
+        - User
+      description: Find user by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+    patch:
+      tags:
+        - User
+      description: Patch user by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: The new user resource
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/patchUser'
+        required: true
+      responses:
+        '204':
+          description: OK
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          description: Resource not found
+    delete:
+      tags:
+        - User
+      description: Delete user by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: OK
+        '404':
+          description: Resource not found
+  /user:
+    post:
+      tags:
+        - User
+      description: Create user
+      requestBody:
+        description: The new user resource
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postUser'
+        required: true
+      responses:
+        '202':
+          description: OK
+        '401':
+          $ref: '#/components/responses/unauthorized'
+  /flows:
+    get:
+      tags:
+        - Dictionary
+      description: List of flows
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/flowType'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+components:
+  responses:
+    unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: number
+                description: Error internal number
+              message:
+                type: string
+                description: Error message
+          examples:
+            missingToken:
+              value:
+                code: 401
+                message: JWT Token not found
+              description: Authorization token is missing
+            tokenInvalid:
+              value:
+                code: 401
+                message: Invalid JWT Token
+              description: Authorization token is invalid.
+  schemas:
+    applications:
+      type: object
+      properties:
+        _meta:
+          $ref: '#/components/schemas/applicationsMeta'
+        items:
+          $ref: '#/components/schemas/application'
+    applicationsMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        pages:
+          type: integer
+        items:
+          type: integer
+        itemsPerPage:
+          type: integer
+    application:
+      type: object
+      properties:
+        flow:
+          type: string
+          default: name of flow object
+        id:
+          type: integer
+        currentStage:
+          type: integer
+        user:
+          $ref: '#/components/schemas/user'
+        flowStatus:
+          $ref: '#/components/schemas/flowStatus'
+    user:
+      type: object
+      properties:
+        id:
+          type: integer
+        isActive:
+          type: boolean
+        email:
+          type: string
+        name:
+          type: string
+        surname:
+          type: string
+        team:
+          $ref: '#/components/schemas/team'
+        flows:
+          type: array
+          items:
+            $ref: '#/components/schemas/flowType'
+        isProcessAdministrator:
+          type: boolean
+    flowType:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    city:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+    streetType:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+        short:
+          type: string
+    flowStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        isDefault:
+          type: boolean
+        isFinal:
+          type: boolean
+    laboratory:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+          description: name of the laboratory
+        symbol:
+          type: string
+          description: symbol of the laboratory
+        city:
+          $ref: '#/components/schemas/city'
+    collectionPoint:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+          description: name of the collection point
+        isActive:
+          type: boolean
+          description: is the collection point phisicly exists and working
+        symbol:
+          type: string
+          nullable: true
+          description: symbol of the collection point
+        street:
+          type: string
+          nullable: true
+        city:
+          $ref: '#/components/schemas/city'
+        postalCode:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        laboratory:
+          $ref: '#/components/schemas/laboratory'
+        streetType:
+          $ref: '#/components/schemas/streetType'
+    postUser:
+      type: object
+      properties:
+        name:
+          type: string
+          maximum: 128
+        surname:
+          type: string
+          maximum: 128
+        email:
+          type: string
+          maximum: 128
+        password:
+          type: string
+          minLength: 10
+          maximum: 64
+        isActive:
+          type: boolean
+        team:
+          type: integer
+        user:
+          type: integer
+        isProcessAdministrator:
+          type: boolean
+        flows:
+          type: array
+          items:
+            type: integer
+      required:
+        - name
+        - surname
+        - email
+        - password
+        - team
+    patchUser:
+      type: object
+      properties:
+        name:
+          type: string
+          maximum: 128
+        surname:
+          type: string
+          maximum: 128
+        email:
+          type: string
+          maximum: 128
+        password:
+          type: string
+          minLength: 10
+          maximum: 64
+        isActive:
+          type: boolean
+        team:
+          type: integer
+        user:
+          type: integer
+        isProcessAdministrator:
+          type: boolean
+        flows:
+          type: array
+          items:
+            type: integer
+    health:
+      type: object
+      properties:
+        health:
+          type: integer
+          default: 0
+          example: 0
+          description: number which indicates the health, the lower the better
+        subject:
+          type: string
+          default: 'Available, no issue found.'
+          example: 'Available, no issue found.'
+          description: text information about current action, problems etc.
+    healingSubject:
+      type: object
+      properties:
+        bookId:
+          type: string
+          maximum: 512
+        name:
+          type: string
+          maximum: 512
+        nip:
+          type: string
+          maximum: 512
+        regon:
+          type: string
+          maximum: 512
+        email:
+          type: string
+          maximum: 512
+        phone:
+          type: string
+          maximum: 512
+        city:
+          type: string
+          maximum: 512
+        postalCode:
+          type: string
+          maximum: 512
+        street:
+          type: string
+          maximum: 512
+        houseNumber:
+          type: string
+          maximum: 512
+        flatNumber:
+          type: string
+          maximum: 512
+        registrationBookNumber:
+          type: string
+          maximum: 512
+        healingUnit:
+          type: array
+          items:
+            $ref: '#/components/schemas/healthUnit'
+        healingDivision:
+          type: array
+          items:
+            $ref: '#/components/schemas/healthDivision'
+    healthUnit:
+      type: object
+      properties:
+        name:
+          type: string
+          maximum: 512
+        regon:
+          type: string
+          maximum: 512
+        email:
+          type: string
+          maximum: 512
+        phone:
+          type: string
+          maximum: 512
+        city:
+          type: string
+          maximum: 512
+        postalCode:
+          type: string
+          maximum: 512
+        street:
+          type: string
+          maximum: 512
+        houseNumber:
+          type: string
+          maximum: 512
+        flatNumber:
+          type: string
+          maximum: 512
+    healthDivision:
+      type: object
+      properties:
+        regon:
+          type: string
+          maximum: 512
+        email:
+          type: string
+          maximum: 512
+        phone:
+          type: string
+          maximum: 512
+        city:
+          type: string
+          maximum: 512
+        postalCode:
+          type: string
+          maximum: 512
+        street:
+          type: string
+          maximum: 512
+        houseNumber:
+          type: string
+          maximum: 512
+        flatNumber:
+          type: string
+          maximum: 512
+    flow:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        currentStage:
+          type: integer
+        stageHistory:
+          type: array
+          items:
+            type: string
+          description: list of commited stages
+        flow:
+          type: object
+          description: flow data content
+          items:
+            type: object
+        flowStatus:
+          $ref: '#/components/schemas/flowStatus'
+        user:
+          $ref: '#/components/schemas/user'
+    error:
+      type: object
+      properties:
+        error:
+          type: string
+        context:
+          type: array
+          items:
+            type: object
+    stage:
+      type: object
+    gus:
+      type: object
+      properties:
+        regon:
+          type: integer
+        nip:
+          type: integer
+        nipStatus:
+          type: string
+        regon14:
+          type: string
+        name:
+          type: string
+        province:
+          type: string
+        district:
+          type: string
+        community:
+          type: string
+        city:
+          type: string
+        propertyNumber:
+          type: string
+        apartmentNumber:
+          type: string
+        zipCode:
+          type: string
+        street:
+          type: string
+        type:
+          type: string
+        silo:
+          type: integer
+        activityEndDate:
+          type: string
+          format: date
+        postCity:
+          type: string
+    team:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    postUserResetRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+    postUserReset:
+      type: object
+      properties:
+        password:
+          type: string
+          format: password
+    login:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    collectionPointAndLaboratoryFilter:
+      type: object
+      properties:
+        collectionPointId:
+          type: array
+          items:
+            type: integer
+        laboratoryId:
+          type: array
+          items:
+            type: integer
+    token:
+      type: object
+      properties:
+        token:
+          type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: [ ]
